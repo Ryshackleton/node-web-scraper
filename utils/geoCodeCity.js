@@ -31,17 +31,25 @@ function getUSCity(str = '', checkForUniversityAtCity = true) {
     return city.name.match(cityName)
   });
 
+  let found = false;
   return results.reduce((acc, result) => {
     const {
       country,
       adminCode,
+      name,
     } = result;
     const stateResult = get(us_states, adminCode);
     if (
       country === 'US'
       && stateResult.toLowerCase() === stateParse.toLowerCase()
     ) {
-      acc.push(result);
+      if (cityName === name) {
+        found = true;
+        acc = [result];
+      }
+      if (!found) {
+        acc.push(result);
+      }
     }
 
     return acc;
