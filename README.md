@@ -10,4 +10,4 @@ $ npm install
 $ node server.js
 ```
 
- Then it will start up our node server, navigate to http://localhost:8081/wikipedia-school-shootings and see what happens.
+ Then it will start up our node server, navigate to http://localhost:3000/wikipedia-school-shootings and see what happens.
