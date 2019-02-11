@@ -1,7 +1,8 @@
 node-web-scraper
 ================
 
-Simple web scraper to fetch various data from the web.
+Simple web scraper to fetch various data from the web.  Forked from [this excellent tutorial](https://scotch.io/tutorials/scraping-the-web-with-node-js)
+
 To run this example use the following commands:
 
 ``` shell
