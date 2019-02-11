@@ -1,4 +1,4 @@
-const { get, isNil, isArray } = require('lodash');
+const { get, isNil, isArray, partialRight } = require('lodash');
 const { parseDate } = require('chrono-node');
 const { getUSCityLocation } = require('../utils/geoCodeCity');
 
@@ -157,6 +157,104 @@ exports.massShootingsPre2018 = {
       }, [])
       : unparsed;
   }
+};
+
+
+/**
+ * processor function for single year mass shootings (doesn't filter by year, just hits a given page)
+ * @param unparsed - returned json
+ * @param frameRootNodeKey - key of the root node in the json to look for an array within
+ * @return {object} representing the parsed json
+ */
+function processSingleYearMassShootingsJSON(unparsed, frameRootNodeKey) {
+  const parseArray = get(unparsed, frameRootNodeKey);
+  return isArray(parseArray)
+    ? parseArray.reduce((acc, { date, deaths, injuries, description, location, ...rest }) => {
+      const dateFixed = parseDate(date);
+      if (
+        !isNil(description)
+        && !isNil(date)
+        && !isNil(deaths)
+        && !isNil(injuries)
+      ) {
+        acc.push({
+          ...rest,
+          date: dateFixed,
+          // deaths, injuries, description,
+          deaths: removeCitationBrackets(deaths),
+          injuries: removeCitationBrackets(injuries),
+          description: removeCitationBrackets(description),
+          location,
+          geocode_results: {
+            ...getUSCityLocation(location, true),
+          }
+        });
+      }
+      return acc;
+    }, [])
+    : unparsed;
+}
+
+/**
+ * Mass shootings 2018
+ * Collection of props to pass to ../parser.parseJSONFrame() to select items on a given page
+ * and convert them to objects using the jsonframe-cheerio library
+ * @type {{
+ *    selector: string representing the target selector to target on the html page,
+ *    postProcessor: (function(*=): *) function to post process the json response,
+ *    url: string representing the url of the page,
+ *    frame: object representing the shape of the output json according to jsonframe spec,
+ *    scrapeOptions: object representing the options of the jsonframe.scrape() function,
+ * }}
+ */
+exports.massShootings2018 = {
+  url: 'https://en.wikipedia.org/wiki/List_of_mass_shootings_in_the_United_States_in_2018',
+  selector: '#bodyContent',
+  frame: {
+    mass_shootings_2018: {
+      _s: ".wikitable tbody tr",  // the selector
+      _d: [{  // allow you to get an array of data, not just the first item
+        "date": "td:nth-child(1)",
+        "location": "td:nth-child(2)",
+        "deaths": "td:nth-child(3)",
+        "injuries": "td:nth-child(4)",
+        "description": "td:nth-child(6)",
+      }]
+    }
+  },
+  scrapeOptions: {},
+  postProcessor: partialRight(processSingleYearMassShootingsJSON, 'mass_shootings_2018')
+};
+
+/**
+ * Mass shootings 2019
+ * Collection of props to pass to ../parser.parseJSONFrame() to select items on a given page
+ * and convert them to objects using the jsonframe-cheerio library
+ * @type {{
+ *    selector: string representing the target selector to target on the html page,
+ *    postProcessor: (function(*=): *) function to post process the json response,
+ *    url: string representing the url of the page,
+ *    frame: object representing the shape of the output json according to jsonframe spec,
+ *    scrapeOptions: object representing the options of the jsonframe.scrape() function,
+ * }}
+ */
+exports.massShootings2019 = {
+  url: 'https://en.wikipedia.org/wiki/List_of_mass_shootings_in_the_United_States_in_2019',
+  selector: '#bodyContent',
+  frame: {
+    mass_shootings_2019: {
+      _s: ".wikitable tbody tr",  // the selector
+      _d: [{  // allow you to get an array of data, not just the first item
+        "date": "td:nth-child(1)",
+        "location": "td:nth-child(2)",
+        "deaths": "td:nth-child(3)",
+        "injuries": "td:nth-child(4)",
+        "description": "td:nth-child(6)",
+      }]
+    }
+  },
+  scrapeOptions: {},
+  postProcessor: partialRight(processSingleYearMassShootingsJSON, 'mass_shootings_2019')
 };
 
 
